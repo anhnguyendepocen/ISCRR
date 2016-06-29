@@ -1,0 +1,367 @@
+---
+title: "Introduction to Multi-level Models using R"
+author: "Professor Di Cook, Econometrics and Business Statistics"
+date: "Workshop for the Institute for Safety, Compensation and Recovery Research"
+output:
+  beamer_presentation: 
+    theme: Monash
+---
+
+```{r setup, include = FALSE}
+library("knitr")
+opts_chunk$set(
+  message = FALSE,
+  warning = FALSE,
+  error = FALSE,
+  cache = FALSE,
+  fig.height = 3,
+  fig.width = 6,
+  fig.caption = FALSE,
+  collapse = TRUE,
+  comment = "#"
+)
+options(digits=2)
+library("rmarkdown")
+library("devtools")
+library("readr")
+library("tidyr")
+library("ggplot2")
+library("ggthemes")
+library("gridExtra")
+library("dplyr")
+library("lubridate")
+library("GGally")
+library("rworldmap")
+library("ggmap")
+library("scales")
+library("dichromat")
+library("RColorBrewer")
+library("viridis")
+library("purrr")
+library("broom")
+library("timeDate")
+library("haven")
+library("boot")
+library("lme4")
+library("nlme")
+```
+
+# Outline
+
+- Session 1: Basic models, fitting multiple separate models
+- Session 2: Putting it together, using mixed effects models
+- Session 3: Summarising and visualising models
+- Session 4: Advanced modeling
+
+# Session 1
+
+- **Basic models, fitting multiple separate models**
+
+# Your turn
+
+- What is a model?
+
+# Gapminder data
+
+- Original source from Hans Rosling's software and  [TED talk](https://www.ted.com/talks/hans_rosling_shows_the_best_stats_you_ve_ever_seen?language=en)
+- Example modeling code by Hadley Wickham, enhanced by Heike Hofmann
+- Demographic data by country and continent since 1952, life expectancy and GDP per capita (reduced subset in the R package from the original)
+
+# Gapminder
+
+```{r}
+library("gapminder")
+glimpse(gapminder)
+```
+
+# Take a look
+
+```{r}
+ggplot(data=gapminder, aes(x=year, y=lifeExp, group=country)) +
+  geom_line(alpha=0.5)
+```
+
+How would you describe this plot?
+
+# Using models as exploratory tools
+
+- Idea: fit a line to each one of the countries' life expectancies
+- then use e.g. intercept and slope to characterise groups of countries
+
+```{r}
+gapminder2 <- gapminder %>% mutate(year1950 = year-1950)
+by_country <- gapminder2 %>% 
+  select(country, year1950, lifeExp, continent) %>%
+  group_by(country, continent) %>% 
+  nest()
+```
+
+# From a data frame .... 
+
+```{r echo=F}
+kable(gapminder2[,c(1, 2, 7, 4)])
+```
+
+# ... to a list of data frames
+
+![](list_of_data_frames.png)
+
+# purrr applies function to each element of the list
+
+```{r}
+by_country <- by_country %>% 
+  mutate(
+    model = purrr::map(data, ~ lm(lifeExp ~ year1950, 
+                                  data = .))
+  )
+```
+
+Fits a linear model to each country, e.g. 
+
+`lm(lifeExp ~ year1950, data=australia)`
+
+# Use broom to unnest the fitted models
+
+```{r}
+by_country <- by_country %>% 
+  unnest(model %>% purrr::map(broom::tidy))
+kable(head(by_country))
+```
+
+# And tidyr::spread to keep desired items
+
+```{r}
+country_coefs <- by_country %>% 
+  select(continent, country, term, estimate) %>% 
+  spread(term, estimate)
+kable(head(country_coefs))
+```
+
+# Plot estimates
+
+```{r fig.show='hide'}
+ggplot(data=country_coefs, aes(x=`(Intercept)`, y=year1950, 
+                               colour=continent)) +
+  geom_hline(yintercept=0, colour="grey60") +
+  geom_point(alpha=0.7, size=4) + 
+  scale_colour_brewer(palette="Dark2") + 
+  xlab("Life Expectancy in 1950") +
+  ylab("Gain in Life Expectancy per Year")
+```
+
+#
+
+```{r echo=FALSE}
+ggplot(data=country_coefs, aes(x=`(Intercept)`, y=year1950, 
+                               colour=continent)) + 
+  geom_hline(yintercept=0, colour="grey60") +
+  geom_point(alpha=0.7, size=4) + 
+  scale_colour_brewer(palette="Dark2") + 
+  xlab("Life Expectancy in 1950") +
+  ylab("Gain in Life Expectancy per Year") 
+```
+
+What do we learn?
+
+#
+
+- High life expectancy in 1950 (e.g. Europe) tends to have smaller gains
+- Most countries on the African continent observed lower respective gains, and three saw declines
+- Largest gains occurred in Asia
+
+# Add interaction
+
+```
+ggplot(data=country_coefs, aes(x=`(Intercept)`, y=year1950, 
+                               colour=continent, label=country)) + 
+  geom_hline(yintercept=0, colour="grey60") +
+  geom_point(alpha=0.7, size=4) + 
+  scale_colour_brewer(palette="Dark2") + 
+  xlab("Life Expectancy in 1950") +
+  ylab("Gain in Life Expectancy per Year") 
+ggplotly(tooltips="country")
+```
+
+# Australian Life Expectancy
+
+```{r}
+oz <- gapminder %>% filter(country=="Australia")
+kable(head(oz))
+```
+
+# Life Expectancy in Australia since 1950
+
+```{r}
+ggplot(data=oz, aes(x=year, y=lifeExp)) + 
+  geom_point() + 
+  geom_smooth(method="lm")
+```
+
+# 
+
+```{r}
+oz.lm <- lm(lifeExp~year, data=oz)
+oz.lm
+```
+
+# 
+
+Intercept is estimated life expectancy at 0 BC - let's use 1950 for the first value:
+
+```{r}
+oz <- oz %>% mutate(year = year-1950)
+oz.lm <- lm(lifeExp~year, data=oz)
+oz.lm
+```
+
+# Nesting data
+
+We don't want to subset the data for every country ... 
+
+```nest()``` makes a data frame part of another data frame:
+
+```{r}
+by_country <- gapminder2 %>% 
+  group_by(continent, country) %>% 
+  nest()
+head(by_country)
+```
+
+#
+
+Each element of the `data` variable in `by_country` is a dataset:
+
+```{r}
+head(by_country$data[[1]])
+```
+
+#
+
+```{r}
+lm(lifeExp~year1950, data=by_country$data[[1]])
+```
+
+# Fitting multiple models
+
+Now we are using the ```map``` function in the package ```purrr```.
+
+```map``` allows us to apply a function to each element of a list.
+
+```{r}
+by_country$model <- by_country$data %>% 
+  purrr::map(~lm(lifeExp~year1950, data=.))
+head(by_country)
+```
+
+# On to the ```broom``` package
+
+```broom``` allows to extract values from models on three levels:
+
+- for each model: ```broom::glance```
+- for each coefficient in the model: ```broom::tidy```
+- for each value in the dataset: ```broom::augment```
+
+```{r}
+broom::glance(by_country$model[[1]])
+broom::tidy(by_country$model[[1]])
+```
+
+# 
+
+```{r}
+broom::augment(by_country$model[[1]])
+```
+
+# Extract values for each coefficient
+
+Extract all countries automatically (hello ```map``` again!)
+
+```{r}
+by_country_coefs <- by_country %>% 
+  unnest(model %>% purrr::map(broom::tidy))
+coefs <- by_country_coefs %>% 
+  select(country, continent, term, estimate) %>% 
+  spread(term, estimate)
+```
+
+# and finally, the visualisation:
+
+```{r}
+ggplot(data=coefs, aes(x=`(Intercept)`, y=year1950, 
+                       colour=continent)) +
+  geom_point()
+```
+
+# Extract other model diagnostics
+
+```{r fig.show='hide'}
+by_country <- by_country %>% 
+  unnest(model %>% 
+           purrr::map(broom::glance))
+by_country$country <- reorder(by_country$country, 
+                              -by_country$r.squared)
+ggplot(data=by_country, aes(x=country, y=r.squared, 
+                            colour=continent)) +
+  geom_point() +
+  coord_flip() +
+  scale_colour_brewer(palette="Dark2")
+```
+
+#
+
+```{r echo=FALSE, fig.height=8, fig.width=6}
+ggplot(data=by_country, aes(x=country, y=r.squared, colour=continent)) +
+  geom_point() +
+  coord_flip() +
+  scale_colour_brewer(palette="Dark2")
+```
+
+# Examine countries with worst fit
+
+```{r fig.show='hide'}
+country_all <- by_country %>% 
+  unnest(data)
+ggplot(data=subset(country_all, r.squared <= 0.45), 
+       aes(x=year, y=lifeExp)) + 
+         geom_line() +
+  facet_wrap(~country)
+```
+
+#
+
+```{r echo=FALSE}
+ggplot(data=subset(country_all, r.squared <= 0.45), 
+       aes(x=year, y=lifeExp)) + 
+         geom_line() +
+  scale_x_continuous(breaks=seq(1950,2000,10), labels=c("1950", "60","70", "80","90","2000")) + 
+  facet_wrap(~country)
+```
+
+What patterns do you see, and what do they mean?
+
+# Now, let's look at the next worst 
+
+```{r echo=FALSE}
+ggplot(data=subset(country_all, between(r.squared, 0.45, 0.75)), 
+       aes(x=year, y=lifeExp)) + 
+         geom_line() +
+  scale_x_continuous(breaks=seq(1950,2000,10), labels=c("1950", "60","70", "80","90","2000")) + 
+  facet_wrap(~country)
+```
+
+What patterns do you see, and what do they mean?
+
+# Your turn
+
+- extract residuals for each of the models and store it in a dataset together with country and continent information
+
+- plot residuals across the years and fit a smooth. What does the pattern mean?
+
+# Reference material
+
+- Hadley Wickham's gapminder example: [http://wombat2016.org/slides/hadley.pdf](http://wombat2016.org/slides/hadley.pdf)
+- David Robinson's [broom vignettes](https://cran.r-project.org/web/packages/broom/vignettes/broom.html)
+
+# Credits
+
+Notes prepared by Di Cook, using material developed by Hadley Wickham and Heike Hofmann.
