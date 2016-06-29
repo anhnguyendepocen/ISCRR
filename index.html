@@ -1,0 +1,108 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" media="screen" href="ourstylesheet.css">
+<title>ISCRR Workshop - May 20, 2016</title>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+        <img src="monash.png" align="middle" width="800">
+
+          <h1 id="project_title">ISCRR Workshop</h1>
+          <h2 id="project_tagline">May 20, 2016</h2>
+
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+
+<h1>Software to install</h1>
+
+<ul>
+  <li> RStudio 0.99.896 or 0.99.902
+  <li> R 3.3.0 (2016-05-03) -- "Supposedly Educational"
+</ul>
+
+These R packages, and all of their dependencies, using this script once you have R running: </strong></p>
+
+<pre>
+install.packages(c("knitr", "rmarkdown", "devtools", "readr", "tidyr", "ggplot2", "ggthemes", "gridExtra", "dplyr", "lubridate", "GGally", "rworldmap", "ggmap", "scales", "dichromat", "RColorBrewer", "viridis", "purrr", "broom", "timeDate", "haven", "boot"))
+</pre>
+
+<p><strong> and check that everything installed correctly using this script: </strong></p>
+
+<pre>
+library("knitr")
+library("rmarkdown")
+library("devtools")
+library("readr")
+library("tidyr")
+library("ggplot2")
+library("ggthemes")
+library("gridExtra")
+library("dplyr")
+library("lubridate")
+library("GGally")
+library("rworldmap")
+library("ggmap")
+library("scales")
+library("dichromat")
+library("RColorBrewer")
+library("viridis")
+library("purrr")
+library("broom")
+library("timeDate")
+library("haven")
+library("boot")
+</pre>
+
+<h1>Workshop 1</h1>
+
+<p>These are the copies of the slides for the course. Notes are produced with Rmarkdown, so that you can re-create them, and saved as pdf (or html or docx). <strong> YOU DON'T NEED TO DOWNLOAD THESE, I WILL BRING USB STICKS CONTAINING THIS MATERIAL</strong> <p>
+
+<OL>
+<LI> <a href="Workshop 1/1-intro.pdf" target="_blank"> Introduction to Data Analysis and Visualisation using R </a>
+(<a href="Workshop 1/1-intro.R" target="_blank">R script</a>, <a href="Workshop 1/1-intro.Rmd" target="_blank">Rmd file</a>)
+<LI> <a href="Workshop 1/2-basic-plots.pdf" target="_blank"> Making basic plots, grammar of graphics, good practices </a>
+(<a href="Workshop 1/2-basic-plots.R" target="_blank">R script</a>, <a href="Workshop 1/2-basic-plots.Rmd" target="_blank">Rmd file</a>)
+<LI> <a href="Workshop 1/3-data-wrangling.pdf" target="_blank"> Wrangling your data into shape for analysis </a>
+(<a href="Workshop 1/3-data-wrangling.R" target="_blank">R script</a>, <a href="Workshop 1/3-data-wrangling.Rmd" target="_blank">Rmd file</a>)
+<LI> <a href="Workshop 1/4-adv-plots.pdf" target="_blank"> Advanced graphics, layering, using maps </a>
+(<a href="Workshop 1/4-adv-plots.R" target="_blank">R script</a>, <a href="Workshop 1/4-adv-plots.Rmd" target="_blank">Rmd file</a>)
+</OL>
+
+<h1>Data</h1>
+<UL>
+ <LI> <a href="Workshop 1/data/student_sub.rds" target="_blank"> student_sub.rds </a> 
+<LI> <a href="Workshop 1/data/rates.csv" target="_blank"> rates.csv </a>
+<LI> <a href="Workshop 1/data/countries.csv" target="_blank"> countries.csv </a>
+<LI> <a href="Workshop 1/data/genes.csv" target="_blank"> genes.csv </a>
+<LI> <a href="Workshop 1/data/graduate-programs.csv" target="_blank"> graduate-programs.csv </a>
+<LI> <a href="Workshop 1/data/internet.csv" target="_blank"> internet.csv </a>
+<LI> <a href="Workshop 1/data/billboard.csv" target="_blank"> billboard.csv </a>
+<LI> <a href="Workshop 1/data/ASN00086282.dly" target="_blank"> ASN00086282.dly </a>
+<LI> <a href="Workshop 1/data/pew.csv" target="_blank"> pew.csv </a>
+<LI> <a href="Workshop 1/data/tb.csv" target="_blank"> tb.csv </a>
+</UL>
+
+      </section>
+    </div>
+
+        <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright" style="font-size:90%"> 
+        Copyright ©2016 Di Cook</p>
+      </footer>
+    </div>
+
+</body>
+</html>
